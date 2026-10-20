@@ -1,7 +1,8 @@
+#include "vgautil.h"
+
 void endless_loop();
 
-void kernel_entry()
-{
-    *((short int *)0xB8000) = 0;
-    endless_loop();
+void kernel_entry() {
+  vga_clear_screen();
+  endless_loop();
 }
