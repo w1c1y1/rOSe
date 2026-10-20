@@ -7,6 +7,8 @@
 #define VGA_HEIGHT 25
 #define VGA_WIDTH 80
 
+// VGA utils for cleaning screen, specific row or column, print char and scroll
+// down.
 void vga_clear_screen() {
     uint16_t* start = (uint16_t*)0xB8000;
     for (size_t i = 0; i < VGA_HEIGHT * VGA_WIDTH; i++) {
@@ -30,8 +32,9 @@ void vga_clear_column(size_t index) {
 }
 
 void vga_print_char(char c, size_t x, size_t y) {
-    size_t address = 0xB8000 + 2 * (y * 80 + x);
-    *((size_t*)address) = c;
+    if (x >= VGA_WIDTH || y >= VGA_HEIGHT) return;
+    uint16_t* vga = (uint16_t*)0xB8000;
+    vga[y * VGA_WIDTH + x] = c;
 }
 
 void vga_scroll_down() {
