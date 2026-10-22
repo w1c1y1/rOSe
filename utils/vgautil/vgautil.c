@@ -34,7 +34,7 @@ void vga_clear_column(size_t index) {
 void vga_print_char(char c, size_t x, size_t y) {
     if (x >= VGA_WIDTH || y >= VGA_HEIGHT) return;
     uint16_t* vga = (uint16_t*)0xB8000;
-    vga[y * VGA_WIDTH + x] = c;
+    vga[y * VGA_WIDTH + x] = ((uint16_t)0x0F << 8) | (uint8_t)c;
 }
 
 void vga_scroll_down() {

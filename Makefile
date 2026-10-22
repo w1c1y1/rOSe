@@ -6,11 +6,12 @@ QEMU  = qemu-system-i386
 
 BUILD = build
 
-LDS  = src/kernel.ld
-ELF  = $(BUILD)/os.elf
-BIN  = $(BUILD)/os.bin
-IMG  = $(BUILD)/boot.img
-RES  = $(BUILD)/bar
+LDS        = src/kernel.ld
+ELF        = $(BUILD)/os.elf
+BIN        = $(BUILD)/os.bin
+IMG        = $(BUILD)/boot.img
+RES        = $(BUILD)/bar
+KERNEL_BIN = $(BUILD)/kernel.bin
 
 GCC_INC  := $(shell $(CC) -print-file-name=include)
 INC_DIRS := $(sort $(dir $(shell find include utils -name '*.h')))
@@ -31,7 +32,8 @@ ASM_SRCS := $(filter-out src/boot.asm,$(shell find src utils -name '*.asm'))
 C_OBJS   := $(patsubst %.c,$(BUILD)/%.o,$(C_SRCS))
 ASM_OBJS := $(patsubst %.asm,$(BUILD)/%.o,$(ASM_SRCS))
 
-OBJS     := $(BUILD)/src/boot.o $(ASM_OBJS) $(C_OBJS)
+KERNEL_OBJS := $(ASM_OBJS) $(C_OBJS)
+OBJS        := $(BUILD)/src/boot.o $(KERNEL_OBJS)
 
 .PHONY: all run dump clean
 
@@ -46,6 +48,17 @@ $(BUILD)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	@echo "ASM   $<"
 	@$(ASM) $(ASMFLAGS) $< -o $@
+
+$(KERNEL_BIN): $(KERNEL_OBJS) $(LDS)
+	@mkdir -p $(dir $@)
+	@$(LD) $(LDFLAGS) --defsym=endless_loop=0x7C00 $(KERNEL_OBJS) -o $(BUILD)/kernel-size.elf
+	@$(OBJC) $(OCFLAGS) $(BUILD)/kernel-size.elf $@
+
+$(BUILD)/src/boot.o: src/boot.asm $(KERNEL_BIN)
+	@mkdir -p $(dir $@)
+	@SIZE=$$(stat -c%s $(KERNEL_BIN)); \
+	 echo "ASM   $< (PAYLOAD_SIZE=$$SIZE)"; \
+	 $(ASM) $(ASMFLAGS) -D PAYLOAD_SIZE=$$SIZE $< -o $@
 
 $(ELF): $(OBJS) $(LDS)
 	@mkdir -p $(dir $@)
