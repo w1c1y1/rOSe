@@ -15,6 +15,9 @@ SECTIONS {
         *(.bss);
     }
 
+    .=ALIGN(8)
+    kernel_end = .;
+
 
     /DISCARD/ : {
         *(.eh_frame)
