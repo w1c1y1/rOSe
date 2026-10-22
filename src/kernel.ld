@@ -15,7 +15,7 @@ SECTIONS {
         *(.bss);
     }
 
-    .=ALIGN(8)
+    . = ALIGN(8);
     kernel_end = .;
 
 
