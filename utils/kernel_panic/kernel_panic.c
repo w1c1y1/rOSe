@@ -10,8 +10,7 @@ void endless_loop();
 
 void vkernel_panic(const char* fmt, va_list args) {
     call_cli();
-    vga_clear_screen();
-    set_cursor(0, 0);
+    init_printer();
     vprintf(fmt, args);
     endless_loop();
 }
