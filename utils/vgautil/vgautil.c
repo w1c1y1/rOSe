@@ -11,7 +11,7 @@
 // down.
 void vga_clear_screen() {
     uint16_t* start = (uint16_t*)0xB8000;
-    for (size_t i = 0; i < VGA_HEIGHT * VGA_WIDTH; i++) {
+    for (size_t i = 0; i < VGA_HEIGHT * VGA_WIDTH; i++) {  // memzero
         start[i] = 0;
     }
 }
@@ -19,7 +19,7 @@ void vga_clear_screen() {
 void vga_clear_line(size_t index) {
     uint16_t* vga_start = (uint16_t*)0xB8000;
     uint16_t* line_to_clear = vga_start + VGA_WIDTH * index;
-    for (size_t i = 0; i < VGA_WIDTH; i++) {
+    for (size_t i = 0; i < VGA_WIDTH; i++) {  // memzero
         line_to_clear[i] = 0;
     }
 }

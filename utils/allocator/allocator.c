@@ -14,7 +14,6 @@ uintptr_t current_start = (uintptr_t)kernel_end;
 void* malloc_undead(size_t size, size_t alignment) {
     uintptr_t aligned_address =
         (current_start + alignment - 1) & ~(alignment - 1);
-    assert(aligned_address + size >= aligned_address);
     assert(aligned_address + size <= arena_end);
     void* address_to_return = (void*)aligned_address;
     current_start = aligned_address + size;

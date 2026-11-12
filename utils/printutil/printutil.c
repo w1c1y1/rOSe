@@ -1,3 +1,4 @@
+#include "assertions.h"
 #include "stdarg.h"
 #include "stdbool.h"
 #include "stddef.h"
@@ -100,6 +101,8 @@ void vprintf(const char* fmt, va_list args) {
                 break;
             }
             case 'x': {
+                _printchar('0');
+                _printchar('x');
                 _print_uint(va_arg(args, uint32_t), 16, 0);
                 break;
             }
@@ -109,12 +112,20 @@ void vprintf(const char* fmt, va_list args) {
             }
             case 's': {
                 const char* s = va_arg(args, const char*);
-                if (!s) {
-                    s = "(null)";
-                }
                 while (*s) {
                     _printchar(*s++);
                 }
+                break;
+            }
+            case 'z': {
+                _print_uint(va_arg(args, uint32_t), 10, 0);
+                break;
+            }
+            case 'p': {
+                void* ptr = va_arg(args, void*);
+                _printchar('0');
+                _printchar('x');
+                _print_uint((uint32_t)ptr, 16, 0);
                 break;
             }
         }
@@ -126,4 +137,15 @@ void printf(const char* fmt, ...) {
     va_start(args, fmt);
     vprintf(fmt, args);
     va_end(args);
+}
+
+void print_hex_8(uint32_t val) {
+    char hex[] = "0123456789ABCDEF";
+    char buf[9];
+    buf[8] = '\0';
+    for (int i = 7; i >= 0; i--) {
+        buf[i] = hex[val & 0xF];
+        val >>= 4;
+    }
+    printf("%s", buf);
 }

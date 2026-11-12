@@ -1,16 +1,24 @@
 #include "allocator.h"
 #include "assertions.h"
+#include "interruptions.h"
 #include "kernel_panic.h"
 #include "printutil.h"
+#include "stdbool.h"
 #include "stddef.h"
 #include "stdint.h"
 #include "vgautil.h"
 
-void endless_loop();
+extern void zero_interrupt_experiment();
+extern void sti_experiment();
+extern void int_experiment();
+extern void endless_loop();
 
 void kernel_entry() {
-    vga_clear_screen();
-    void* array = (uint32_t*)calloc_undead(5 * sizeof(uint32_t), 4);
-    printf("%x", (uint32_t)array);
+    init_printer();
+    load_idt();
+
+    zero_interrupt_experiment();
+    // int_experiment();
+    // sti_experiment();
     endless_loop();
 }

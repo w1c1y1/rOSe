@@ -76,6 +76,9 @@ printing:
 error_msg: db "Reading error!!", 0x0A, 0x0D, 0
 msg: db "Hello, World!", 0x0A, 0x0D, 0
 
+;Repeat cld and flags (Granularity)
+; cld - to garantee that str inst gonna work correctly (not in reverse order)
+; Granularity - if 0, max address is 1Mb, else we in pages and max address pool is 4GB
 go_to_C:
   lgdt [gdt_descriptor]   ; load gdt
   cld                     ; clear destination flag
@@ -93,7 +96,7 @@ go_to_C:
     mov ss, ax
 
   [EXTERN kernel_entry]
-  call CODE:kernel_entry  ; enter C
+  call kernel_entry  ; enter C
 
   [GLOBAL endless_loop]   ; and freeze
   endless_loop:

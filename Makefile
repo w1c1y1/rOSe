@@ -37,7 +37,7 @@ OBJS        := $(BUILD)/src/boot.o $(KERNEL_OBJS)
 
 .PHONY: all run dump clean
 
-all: $(IMG)
+all: clean run
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
