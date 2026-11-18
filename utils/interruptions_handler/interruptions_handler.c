@@ -1,5 +1,6 @@
 #include "allocator.h"
 #include "assertions.h"
+#include "bitutils.h"
 #include "interruptions.h"
 #include "kernel_panic.h"
 #include "printutil.h"
@@ -7,12 +8,17 @@
 #include "stddef.h"
 #include "stdint.h"
 #include "vgautil.h"
+
 #define SIZE_OF_VECTOR 16
 #define VECTOR_ALIGNMENT
 
 extern void context_save();
 extern void lidt(fake_idt* address);
 extern void endless_loop();
+extern void pic_setup(bool auto_EOI);
+extern void sti();
+extern uint8_t in(uint16_t port);
+extern void out(uint16_t port, uint8_t value);
 
 bool has_error_code(int vector) {
     return (vector == 8) || (vector >= 10 && vector <= 14) || (vector == 17) ||
@@ -61,9 +67,7 @@ void load_idt() {
     lidt(&pseudo_idt);
 }
 
-void universal_handler(context_t* ctx) {
-    vga_clear_screen();
-
+void print_context(context_t* ctx) {
     printf("Kernel panic: unhandled interrupt #%x\n", ctx->vector);
 
     printf("At CS:EIP = 0x");
@@ -114,5 +118,28 @@ void universal_handler(context_t* ctx) {
     print_hex_8(ctx->eflags);
     printf("\n");
 
+    printf("\nEssential Flags:\n");
+    printf("  CF: ");
+    printf("%d, ", getBit(ctx->eflags, 0));
+    printf("IF: ");
+    printf("%d, ", getBit(ctx->eflags, 9));
+    printf("DF: ");
+    printf("%d, ", getBit(ctx->eflags, 10));
+    printf("OF: ");
+    printf("%d\n", getBit(ctx->eflags, 11));
+}
+
+void universal_handler(context_t* ctx) {
+    if (ctx->vector >= 32) {
+        if (ctx->vector == 33) {
+            return;
+        }
+        if (ctx->vector >= 40) {
+            out(0xA0, 0x20);
+        }
+        out(0x20, 0x20);
+    }
+    vga_clear_screen();
+    print_context(ctx);
     endless_loop();
 }
