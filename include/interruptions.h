@@ -4,7 +4,7 @@
 #include "allocator.h"
 #include "stdint.h"
 #define NUMBER_OF_VECTORS 256
-void load_idt();
+void load_idt(uint8_t type);
 
 #pragma pack(push, 1)
 typedef struct {
@@ -41,4 +41,7 @@ typedef struct {
 } fake_idt;
 
 #pragma pack(pop)
+
+void print_context(context_t* ctx);
+
 #endif

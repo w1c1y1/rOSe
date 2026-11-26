@@ -2,6 +2,7 @@
 #include "assertions.h"
 #include "bitutils.h"
 #include "interruptions.h"
+#include "ioutils.h"
 #include "kernel_panic.h"
 #include "printutil.h"
 #include "stdbool.h"
@@ -10,7 +11,6 @@
 #include "vgautil.h"
 
 #define SIZE_OF_VECTOR 16
-#define VECTOR_ALIGNMENT
 
 extern void context_save();
 extern void lidt(fake_idt* address);
@@ -46,7 +46,7 @@ void generate_trampline(int index, uint8_t* current_address) {
     }
 }
 
-void load_idt() {
+void load_idt(uint8_t interrupt_type) {
     interrupt_descriptor* idt = (interrupt_descriptor*)malloc_undead(
         256 * sizeof(interrupt_descriptor), 16);
     uint8_t* pool =
@@ -57,7 +57,7 @@ void load_idt() {
         idt[i].low_offset = (uint16_t)(current_address);  // younger two bytes
         idt[i].segment_selector = 0x08;
         idt[i].reserved = 0;
-        idt[i].type = 0b10001110;  // Interrupt gate type
+        idt[i].type = interrupt_type;  // gate type
         idt[i].offset_high =
             (uint16_t)((uint32_t)(current_address) >> 16);  // older two bytes
     }
@@ -68,7 +68,7 @@ void load_idt() {
 }
 
 void print_context(context_t* ctx) {
-    printf("Kernel panic: unhandled interrupt #%x\n", ctx->vector);
+    printf("Kernel panic: unhandled interrupt #%d\n", ctx->vector);
 
     printf("At CS:EIP = 0x");
     print_hex_8(ctx->cs);
@@ -131,13 +131,11 @@ void print_context(context_t* ctx) {
 
 void universal_handler(context_t* ctx) {
     if (ctx->vector >= 32) {
-        if (ctx->vector == 33) {
-            return;
+        uint8_t irq = ctx->vector - 32;
+        if (irq_handlers[irq] != 0) {
+            irq_handlers[irq](ctx);
         }
-        if (ctx->vector >= 40) {
-            out(0xA0, 0x20);
-        }
-        out(0x20, 0x20);
+        return;
     }
     vga_clear_screen();
     print_context(ctx);
